@@ -10,7 +10,7 @@
 		<h1>Corleone</h1>
 
 		<div id="test">
-			<h1 data-don="click:uwot">1 (Click me)</h1>
+			<h1 data-don-event="click:uwot" data-don-inject="text:increment, data-title:title"></h1>
 		</div>
 
 		<ul class="collection">
@@ -25,8 +25,12 @@
 <script src="corleone.js"></script>
 <script>
 var testId = Don('#test', {
+	ready : function(){
+		this.uwot();
+	},
 	state : {
-		increment : 1
+		increment : 1,
+		title : 'Testzorz'
 	},
 	methods : {
 		uwot : function(){
@@ -36,7 +40,6 @@ var testId = Don('#test', {
 	events : {
 		mouseup : function(e, element){
 			this.increment += 1;
-			this.uwot();
 			element.querySelector('h1').textContent = this.increment;
 		}
 	}
