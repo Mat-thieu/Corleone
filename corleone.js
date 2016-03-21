@@ -2,15 +2,15 @@ function Corleone(selector, data){
 	this.events = false || data.events;
 	this.state = false || data.state;
 	this.methods = false || data.methods;
-	this.readyEvent = false || data.ready;
 	this.elements = document.querySelectorAll(selector);
+	this.bindings = {}; // Bindings for variable changes
 	this.cache = {};
 }
 Corleone.prototype = {
 	ready : function(){
-		if(this.readyEvent){
+		if('ready' in this.events){
 			var elements = (this.elements.length == 1 ? this.elements[0] : this.elements);
-			this.readyEvent.bind(Object.assign(this.state, this.methods))(elements);
+			this.events.ready.bind(Object.assign(this.state, this.methods))(elements);
 		}
 	},
 	addEvents : function(){
@@ -33,11 +33,21 @@ Corleone.prototype = {
 				events : [],
 				injects : []
 			};
+
 			var getDonDOM = function(element, selector, dump){
 				var query = element.querySelectorAll(selector);
 				query = Array.prototype.slice.call(query);
 				foundDon[dump] = foundDon[dump].concat(query);
 			}
+
+			var template = function(str, index){
+				var templateVars = str.match(/{([^{}]+)}/g, "$1");
+				for (var i = templateVars.length - 1; i >= 0; i--) {
+					if(templateVars[i].indexOf(index) !== -1) str = str.replace(templateVars[i], this.state[donInject[1]]);
+				};
+				return str;
+			}.bind(this)
+
 			// Collect don elements
 			for (var i = this.elements.length - 1; i >= 0; i--) {
 				getDonDOM(this.elements[i], '*[data-don-event]', 'events');
@@ -47,6 +57,7 @@ Corleone.prototype = {
 			for (var x = foundDon.events.length - 1; x >= 0; x--) {
 				var attribute = foundDon.events[x].getAttribute('data-don-event').replace(/ /g,'');
 				var events = attribute.split(',');
+
 				for (var i = events.length - 1; i >= 0; i--) {
 					var donEvent = events[i].split(':');
 					foundDon.events[x].addEventListener(donEvent[0], this.methods[donEvent[1]], false);
@@ -56,15 +67,18 @@ Corleone.prototype = {
 			for (var x = foundDon.injects.length - 1; x >= 0; x--) {
 				var attribute = foundDon.events[x].getAttribute('data-don-inject').replace(/ /g,'');
 				var injects = attribute.split(',');
+
 				for (var i = injects.length - 1; i >= 0; i--) {
 					var donInject = injects[i].split(':');
 					switch(donInject[0]){
 						case 'text' :
-							foundDon.injects[x].textContent = this.state[donInject[1]];
+							var thisText = foundDon.injects[x].textContent;
+							foundDon.injects[x].textContent = template(thisText, donInject[1]);
 						break;
 
 						default :
-							foundDon.injects[x].setAttribute(donInject[0], donInject[1]);
+							var thisAttribute = foundDon.injects[x].getAttribute(donInject[0]);
+							foundDon.injects[x].setAttribute(donInject[0], template(thisAttribute, donInject[1]));
 					}
 				};
 			};

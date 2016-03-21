@@ -7,17 +7,26 @@
 </head>
 <body>
 	<div class="container">
-		<h1>Corleone</h1>
+		<div class="row">
+			<div class="col s12">
+				<div class="card-panel">
+					<h1 class="center-align">Corleone</h1>
+					<hr>
+					<div id="test">
+						<h2 data-don-event="click:uwot" data-don-inject="text:increment, data-info:info, text:info" data-info="{info}">{increment} {info}</h2>
+					</div>
 
-		<div id="test">
-			<h1 data-don-event="click:uwot" data-don-inject="text:increment, data-title:title"></h1>
+					<ul class="collection">
+						<li class="collection-item test" data-increment="1">Add One</li>
+						<li class="collection-item test" data-increment="2">Add Two</li>
+						<li class="collection-item test" data-increment="3">Add Three</li>
+					</ul>
+				</div>
+			</div>
 		</div>
 
-		<ul class="collection">
-			<li class="collection-item test" data-title="one">One</li>
-			<li class="collection-item test" data-title="two">Two</li>
-			<li class="collection-item test" data-title="three">Three</li>
-		</ul>
+
+
 
 	</div>
 
@@ -25,40 +34,44 @@
 <script src="corleone.js"></script>
 <script>
 var testId = Don('#test', {
-	ready : function(){
-		this.uwot();
-	},
 	state : {
 		increment : 1,
-		title : 'Testzorz'
+		info : 'Click on me!'
 	},
 	methods : {
 		uwot : function(){
 			console.log('Uwot called');
+		},
+		hover : function(){
+			console.info('HOVER');
 		}
 	},
 	events : {
+		ready : function(){
+			this.uwot();
+		},
 		mouseup : function(e, element){
 			this.increment += 1;
-			element.querySelector('h1').textContent = this.increment;
+			element.querySelector('h2').textContent = this.increment;
 		}
 	}
 });
 
 var testClass = Don('.test', {
-	ready : function(elements){
-		for (var i = 0; i < elements.length; i++) {
-			elements[i].style.background = "#3498db";
-			elements[i].style.color = "#ffffff";
-		};
-	},
 	state : {
 		increment : 1
 	},
 	events : {
+		ready : function(elements){
+			for (var i = 0; i < elements.length; i++) {
+				elements[i].style.background = "#3498db";
+				elements[i].style.color = "#ffffff";
+			};
+		},
 		mouseup : function(e, element){
-			this.increment += 1;
-			console.log({old : this.increment-1, new : this.increment}, element);
+			var incrementValue = parseInt(element.getAttribute('data-increment'));
+			this.increment += incrementValue;
+			console.log({new : this.increment}, element);
 		}
 	}
 });

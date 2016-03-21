@@ -1,7 +1,7 @@
 # Corleone
 Master the DOM, with the Don's help.
 
-A different lightweight DOM manipulation/event library, somewhat simulair to Vue.
+A different lightweight DOM manipulation/event library, somewhat simulair to Vue although far less advanced.
 
 **Take note:** This library is still under development and won't work on IE (would've been a miracle if it did).
 
