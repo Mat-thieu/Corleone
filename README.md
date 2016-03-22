@@ -14,6 +14,9 @@ Corleone is not (yet) a replacement for jQuery, many useful methods for DOM mani
 All modern/mobile browsers + IE 10 and up (Added a polyfill for Object.assign())
 
 ## Todo
+- Find a different solution for data-don-inject (an efficient solution also)
+- Figure in-DOM looping
+- Make a Todo list
 - Absolute buttloads, but I'll get there
 
 
