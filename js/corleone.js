@@ -100,7 +100,7 @@ Corleone.prototype = {
 						break;
 
 						default:
-							var thisAttribute = elementsToUpdate[x].node.getAttribute('data-don-original'+key);
+							var thisAttribute = elementsToUpdate[x].node.getAttribute('data-don-original-'+key);
 							elementsToUpdate[x].node.setAttribute(key, donHelpers.template(thisAttribute, collections[key], this.state));
 							elementsToUpdate[x].node.setAttribute('data-don-original-'+key, thisAttribute);
 					}
