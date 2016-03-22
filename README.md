@@ -18,6 +18,7 @@ All modern/mobile browsers + IE 10 and up (Added a polyfill for Object.assign())
 
 
 ## Usage and examples
+**Examples shown here are for the current version of Corleone, at the final release it might all be completely different**
 Create an element in the DOM
 ```html
 <div id="test">
