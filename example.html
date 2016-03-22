@@ -14,7 +14,7 @@
 					<hr>
 					<div id="test">
 						<h2 data-don-inject="text:increment, text:info, data-info:info" data-info="{info}">{increment} {info}</h2>
-						<small data-don-inject="text:increment">{increment}</small>
+						<small data-don-inject="text:doubleIncrement">{doubleIncrement}</small>
 					</div>
 					<ul class="collection">
 						<li class="collection-item test" data-increment="1">Add One</li>
@@ -32,6 +32,7 @@
 var testId = Don('#test', {
 	state : {
 		increment : 1,
+		doubleIncrement : 2,
 		info : 'Click me!'
 	},
 	methods : {
@@ -42,6 +43,7 @@ var testId = Don('#test', {
 	events : {
 		mouseup : function(e, element){
 			this.state.increment += 1;
+			this.state.doubleIncrement = this.state.increment*2;
 		}
 	}
 });
