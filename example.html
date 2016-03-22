@@ -42,8 +42,8 @@ var testId = Don('#test', {
 	},
 	events : {
 		mouseup : function(e, element){
-			this.state.increment += 1;
-			this.state.doubleIncrement = this.state.increment*2;
+			this.increment += 1;
+			this.doubleIncrement = this.increment*2;
 		}
 	}
 });
@@ -61,8 +61,8 @@ var testClass = Don('.test', {
 		},
 		mouseup : function(e, element){
 			var incrementValue = parseInt(element.getAttribute('data-increment'));
-			this.state.increment += incrementValue;
-			console.log(this.state.increment);
+			this.increment += incrementValue;
+			console.log(this.increment);
 		}
 	}
 });

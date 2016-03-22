@@ -126,7 +126,7 @@ Corleone.prototype = {
 				for(eventName in this.events){
 					if(eventName !== 'ready'){
 						this.cache[eventName] = function(e){
-							this.proto.events[eventName].bind({state : this.proto.state, method : this.proto.methods})(e, this.element);
+							this.proto.events[eventName].bind(this.proto.state)(e, this.element);
 						};
 						this.elements[i].addEventListener(eventName, this.cache[eventName].bind({proto : this, element : this.elements[i]}), false);
 					}
@@ -134,7 +134,7 @@ Corleone.prototype = {
 			};
 		}
 	},
-	scanDom : function(){
+	buildDonDOM : function(){
 		// Bind custom methods
 		if(this.methods){
 			var foundDon = {
@@ -203,12 +203,12 @@ var Don = function(selector, data){
 
 	var corleone = new Corleone(selector, data);
 	corleone.addEvents();
-	corleone.scanDom();
+	corleone.buildDonDOM();
 	corleone.changeObserver(Object.assign({}, corleone.state));
 	corleone.ready();
 
 	performance.measure();
-	return corleone;
+	return corleone.state;
 }
 // --- NOTES ---
 // Find alternative for Object.assign, browser support too crappy

@@ -42,8 +42,7 @@ Don('#test', {
 	},
 	events : { // Bind events directly to the Don container like this
 		mouseup : function(e, element){ // Retrieve the event data and element (#test in this case)
-			this.state.increment += 1; // Manipulate state using "this"
-			this.method.test(); // Call any of the methods the same way
+			this.increment += 1; // Manipulate state using "this"
 			element.querySelector('h1').textContent = this.increment;
 		}
 	}
@@ -80,7 +79,7 @@ var test = Don('#test', {
     }
 });
 
-test.state.testVar = 'm9'; // Updates the state, and updates the DOM
+test.testVar = 'm9'; // Updates the state, and updates the DOM
 ```
 
 
