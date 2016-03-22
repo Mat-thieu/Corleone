@@ -17,7 +17,6 @@ All modern/mobile browsers + IE 10 and up (Added a polyfill for Object.assign())
 - Find a different solution for data-don-inject (an efficient solution also)
 - Figure in-DOM looping
 - Make a Todo list
-- Stop using script-created attributes to store original state
 - Absolute buttloads, but I'll get there
 
 

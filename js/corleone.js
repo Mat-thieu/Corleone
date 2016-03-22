@@ -102,15 +102,13 @@ Corleone.prototype = {
 				for(key in collections){
 					switch(key){
 						case 'text':
-							var thisText = elementsToUpdate[x].node.getAttribute('data-don-original-text');
-							elementsToUpdate[x].node.textContent = DON.template(thisText, collections[key], this.state);
-							elementsToUpdate[x].node.setAttribute('data-don-original-text', thisText);
+							// var thisText = elementsToUpdate[x].node.getAttribute('data-don-original-text');
+							elementsToUpdate[x].node.textContent = DON.template(elementsToUpdate[x].originalState, collections[key], this.state);
 						break;
 
 						default:
-							var thisAttribute = elementsToUpdate[x].node.getAttribute('data-don-original-'+key);
-							elementsToUpdate[x].node.setAttribute(key, DON.template(thisAttribute, collections[key], this.state));
-							elementsToUpdate[x].node.setAttribute('data-don-original-'+key, thisAttribute);
+							// var thisAttribute = elementsToUpdate[x].node.getAttribute('data-don-original-'+key);
+							elementsToUpdate[x].node.setAttribute(key, DON.template(elementsToUpdate[x].originalState, collections[key], this.state));
 					}
 				}
 			};
@@ -180,21 +178,29 @@ Corleone.prototype = {
 				collections[donInject[0]].push(donInject[1]);
 
 				if(!(donInject[1] in this.bindings)) this.bindings[donInject[1]] = [];
-				this.bindings[donInject[1]].push({subject : donInject[0], node : foundDon.injects[x]});
+				var binding = {subject : donInject[0], node : foundDon.injects[x]};
+				switch(donInject[0]){
+					case 'text':
+						binding.originalState = foundDon.injects[x].textContent;
+					break;
+
+					default:
+						binding.originalState = foundDon.injects[x].getAttribute(donInject[0]);
+				}
+				this.bindings[donInject[1]].push(binding);
 			}
+			console.log(this.bindings);
 
 			for(key in collections){
 				switch(key){
 					case 'text':
 						var thisText = foundDon.injects[x].textContent;
 						foundDon.injects[x].textContent = DON.template(thisText, collections[key], this.state);
-						foundDon.injects[x].setAttribute('data-don-original-text', thisText);
 					break;
 
 					default:
 						var thisAttribute = foundDon.injects[x].getAttribute(key);
 						foundDon.injects[x].setAttribute(key, DON.template(thisAttribute, collections[key], this.state));
-						foundDon.injects[x].setAttribute('data-don-original-'+key, thisAttribute);
 				}
 			}
 		};
