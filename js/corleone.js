@@ -189,7 +189,6 @@ Corleone.prototype = {
 				}
 				this.bindings[donInject[1]].push(binding);
 			}
-			console.log(this.bindings);
 
 			for(key in collections){
 				switch(key){
