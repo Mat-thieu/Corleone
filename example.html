@@ -3,7 +3,7 @@
 <head>
 	<meta charset="UTF-8">
 	<title>Corleone</title>
-	<link rel="stylesheet" href="css/materialize.css">
+	<link rel="stylesheet" href="materialize.css">
 </head>
 <body>
 	<div class="container">
@@ -14,7 +14,6 @@
 					<hr>
 					<div id="test">
 						<h2 data-don-inject="text:increment, text:info, data-info:info" data-info="{info}">{increment} {info}</h2>
-						<small data-don-inject="text:increment">{increment}</small>
 					</div>
 					<ul class="collection">
 						<li class="collection-item test" data-increment="1">Add One</li>
@@ -26,8 +25,8 @@
 		</div>
 	</div>
 
-<script src="js/browser-performance.js"></script>
-<script src="js/corleone.js"></script>
+<script src="browser-performance.js"></script>
+<script src="corleone.js"></script>
 <script>
 var testId = Don('#test', {
 	state : {
