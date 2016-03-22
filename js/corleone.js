@@ -23,7 +23,7 @@ if (typeof Object.assign != 'function') {
     };
   })();
 }
-// --- Helper functions--- (Will closure this later)
+
 var DON = {
 	instances : [],
 	observe : function(){
@@ -54,8 +54,6 @@ var DON = {
 		return str;
 	}
 }
-
-
 
 // --- Corleone ---
 function Corleone(selector, data){
@@ -141,24 +139,11 @@ Corleone.prototype = {
 		}
 	},
 	buildDonDOM : function(){
-		// Bind custom methods
+		var foundDon = {
+			events : [],
+			injects : []
+		};
 		if(this.methods){
-			var foundDon = {
-				events : [],
-				injects : []
-			};
-
-			var getDonDOM = function(element, selector, output){
-				var query = element.querySelectorAll(selector);
-				query = Array.prototype.slice.call(query);
-				foundDon[output] = foundDon[output].concat(query);
-			}
-
-			// Collect don elements
-			for (var i = this.elements.length - 1; i >= 0; i--) {
-				getDonDOM(this.elements[i], '*[data-don-event]', 'events');
-				getDonDOM(this.elements[i], '*[data-don-inject]', 'injects');
-			};
 			// Handle event types
 			for (var x = foundDon.events.length - 1; x >= 0; x--) {
 				var attribute = foundDon.events[x].getAttribute('data-don-event').replace(/ /g,'');
@@ -169,43 +154,55 @@ Corleone.prototype = {
 					foundDon.events[x].addEventListener(donEvent[0], this.methods[donEvent[1]], false);
 				};
 			};
-			// Handle injection types
-			for (var x = foundDon.injects.length - 1; x >= 0; x--) {
-				var attribute = foundDon.injects[x].getAttribute('data-don-inject').replace(/ /g,'');
-				var injects = attribute.split(',');
-				var collections = {};
-
-				for (var i = injects.length - 1; i >= 0; i--) {
-					var donInject = injects[i].split(':');
-
-					if(!(donInject[0] in collections)) collections[donInject[0]] = [];
-					collections[donInject[0]].push(donInject[1]);
-
-					if(!(donInject[1] in this.bindings)) this.bindings[donInject[1]] = [];
-					this.bindings[donInject[1]].push({subject : donInject[0], node : foundDon.injects[x]});
-				}
-
-				for(key in collections){
-					switch(key){
-						case 'text':
-							var thisText = foundDon.injects[x].textContent;
-							foundDon.injects[x].textContent = DON.template(thisText, collections[key], this.state);
-							foundDon.injects[x].setAttribute('data-don-original-text', thisText);
-						break;
-
-						default:
-							var thisAttribute = foundDon.injects[x].getAttribute(key);
-							foundDon.injects[x].setAttribute(key, DON.template(thisAttribute, collections[key], this.state));
-							foundDon.injects[x].setAttribute('data-don-original-'+key, thisAttribute);
-					}
-				}
-			};
 		}
+
+		var getDonDOM = function(element, selector, output){
+			var query = element.querySelectorAll(selector);
+			query = Array.prototype.slice.call(query);
+			foundDon[output] = foundDon[output].concat(query);
+		}
+
+		// Collect don elements
+		for (var i = this.elements.length - 1; i >= 0; i--) {
+			getDonDOM(this.elements[i], '*[data-don-event]', 'events');
+			getDonDOM(this.elements[i], '*[data-don-inject]', 'injects');
+		};
+		// Handle injection types
+		for (var x = foundDon.injects.length - 1; x >= 0; x--) {
+			var attribute = foundDon.injects[x].getAttribute('data-don-inject').replace(/ /g,'');
+			var injects = attribute.split(',');
+			var collections = {};
+
+			for (var i = injects.length - 1; i >= 0; i--) {
+				var donInject = injects[i].split(':');
+
+				if(!(donInject[0] in collections)) collections[donInject[0]] = [];
+				collections[donInject[0]].push(donInject[1]);
+
+				if(!(donInject[1] in this.bindings)) this.bindings[donInject[1]] = [];
+				this.bindings[donInject[1]].push({subject : donInject[0], node : foundDon.injects[x]});
+			}
+
+			for(key in collections){
+				switch(key){
+					case 'text':
+						var thisText = foundDon.injects[x].textContent;
+						foundDon.injects[x].textContent = DON.template(thisText, collections[key], this.state);
+						foundDon.injects[x].setAttribute('data-don-original-text', thisText);
+					break;
+
+					default:
+						var thisAttribute = foundDon.injects[x].getAttribute(key);
+						foundDon.injects[x].setAttribute(key, DON.template(thisAttribute, collections[key], this.state));
+						foundDon.injects[x].setAttribute('data-don-original-'+key, thisAttribute);
+				}
+			}
+		};
 	}
 }
 
 var Don = function(selector, data){
-	var performance = new Performance('Don Exec for '+selector, 3);
+	var performance = new Performance('Don Exec on '+selector, 3);
 
 	var corleone = new Corleone(selector, data);
 	corleone.addEvents();
