@@ -24,7 +24,15 @@ if (typeof Object.assign != 'function') {
   })();
 }
 // --- Helper functions--- (Will closure this later)
-var donHelpers = {
+var DON = {
+	instances : [],
+	observe : function(){
+		setInterval(function(){
+			for (var i = DON.instances.length - 1; i >= 0; i--) {
+				DON.instances[i].checkState();
+			};
+		}, 10);
+	},
 	compare : function (a, b) {
 		var changes = [];
 	    var aProps = Object.getOwnPropertyNames(a);
@@ -53,6 +61,7 @@ var donHelpers = {
 function Corleone(selector, data){
 	this.events = false || data.events;
 	this.state = false || data.state;
+	this.oldState;
 	this.methods = false || data.methods;
 	this.elements = document.querySelectorAll(selector);
 	this.bindings = {};
@@ -60,12 +69,13 @@ function Corleone(selector, data){
 }
 Corleone.prototype = {
 	ready : function(){
+		this.oldState = Object.assign({}, this.state);
 		if('ready' in this.events){
 			var elements = (this.elements.length == 1 ? this.elements[0] : this.elements);
 			this.events.ready.bind(Object.assign(this.state, this.methods))(elements);
 		}
 	},
-	changeObserver : function(oldState){
+	checkState : function(){
 		var updateDom = function(changes){
 			var domUpdate = new Performance('DOM update');
 			var elementsToUpdate = [];
@@ -95,13 +105,13 @@ Corleone.prototype = {
 					switch(key){
 						case 'text':
 							var thisText = elementsToUpdate[x].node.getAttribute('data-don-original-text');
-							elementsToUpdate[x].node.textContent = donHelpers.template(thisText, collections[key], this.state);
+							elementsToUpdate[x].node.textContent = DON.template(thisText, collections[key], this.state);
 							elementsToUpdate[x].node.setAttribute('data-don-original-text', thisText);
 						break;
 
 						default:
 							var thisAttribute = elementsToUpdate[x].node.getAttribute('data-don-original-'+key);
-							elementsToUpdate[x].node.setAttribute(key, donHelpers.template(thisAttribute, collections[key], this.state));
+							elementsToUpdate[x].node.setAttribute(key, DON.template(thisAttribute, collections[key], this.state));
 							elementsToUpdate[x].node.setAttribute('data-don-original-'+key, thisAttribute);
 					}
 				}
@@ -109,15 +119,11 @@ Corleone.prototype = {
 			domUpdate.measure();
 		}.bind(this);
 
-		var checkState = function(){
-			var comparison = donHelpers.compare(oldState, this);
-			if(!comparison.state){
-				updateDom(comparison.changes);
-				oldState = Object.assign({}, this);
-			}
-		}.bind(this.state);
-
-		setInterval(checkState, 10);
+		var comparison = DON.compare(this.oldState, this.state);
+		if(!comparison.state){
+			updateDom(comparison.changes);
+			this.oldState = Object.assign({}, this.state);
+		}
 	},
 	addEvents : function(){
 		// Apply event handlers
@@ -183,13 +189,13 @@ Corleone.prototype = {
 					switch(key){
 						case 'text':
 							var thisText = foundDon.injects[x].textContent;
-							foundDon.injects[x].textContent = donHelpers.template(thisText, collections[key], this.state);
+							foundDon.injects[x].textContent = DON.template(thisText, collections[key], this.state);
 							foundDon.injects[x].setAttribute('data-don-original-text', thisText);
 						break;
 
 						default:
 							var thisAttribute = foundDon.injects[x].getAttribute(key);
-							foundDon.injects[x].setAttribute(key, donHelpers.template(thisAttribute, collections[key], this.state));
+							foundDon.injects[x].setAttribute(key, DON.template(thisAttribute, collections[key], this.state));
 							foundDon.injects[x].setAttribute('data-don-original-'+key, thisAttribute);
 					}
 				}
@@ -204,11 +210,16 @@ var Don = function(selector, data){
 	var corleone = new Corleone(selector, data);
 	corleone.addEvents();
 	corleone.buildDonDOM();
-	corleone.changeObserver(Object.assign({}, corleone.state));
 	corleone.ready();
+
+	DON.instances.push(corleone);
 
 	performance.measure();
 	return corleone.state;
 }
+
+// Enable the state change observer
+DON.observe();
+
 // --- NOTES ---
 // Find alternative for Object.assign, browser support too crappy
