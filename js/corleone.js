@@ -42,8 +42,9 @@ var DON = {
 	        if (a[propName] !== b[propName]) changes.push(propName);
 	    }
 
-	    if(changes.length > 0) return {state : false, changes : changes};
-	    else return {state : true};
+
+	    if(changes.length > 0) return {same : false, changes : changes};
+	    else return {same : true};
 	},
 	template : function(str, vars, state){
 		var templateVars = str.match(/{([^{}]+)}/g, "$1");
@@ -59,18 +60,27 @@ var DON = {
 function Corleone(selector, data){
 	this.events = false || data.events;
 	this.state = false || data.state;
-	this.oldState;
 	this.methods = false || data.methods;
 	this.elements = document.querySelectorAll(selector);
+	this.oldState;
 	this.bindings = {};
-	this.cache = {};
 }
 Corleone.prototype = {
+	before : function(){
+		if(this.events){
+			if('before' in this.events){
+				var elements = (this.elements.length == 1 ? this.elements[0] : this.elements);
+				this.events.before.bind(Object.assign(this.state, this.methods))(elements);
+			}
+		}
+	},
 	ready : function(){
 		this.oldState = Object.assign({}, this.state);
-		if('ready' in this.events){
-			var elements = (this.elements.length == 1 ? this.elements[0] : this.elements);
-			this.events.ready.bind(Object.assign(this.state, this.methods))(elements);
+		if(this.events){
+			if('ready' in this.events){
+				var elements = (this.elements.length == 1 ? this.elements[0] : this.elements);
+				this.events.ready.bind(Object.assign(this.state, this.methods))(elements);
+			}
 		}
 	},
 	checkState : function(){
@@ -86,7 +96,7 @@ Corleone.prototype = {
 				}
 			};
 			for (var x = elementsToUpdate.length - 1; x >= 0; x--) {
-				var attribute = elementsToUpdate[x].node.getAttribute('data-don-inject').replace(/ /g,'');
+				var attribute = elementsToUpdate[x].attribute.replace(/ /g,'');
 				var injects = attribute.split(',');
 				var collections = {};
 
@@ -102,12 +112,10 @@ Corleone.prototype = {
 				for(key in collections){
 					switch(key){
 						case 'text':
-							// var thisText = elementsToUpdate[x].node.getAttribute('data-don-original-text');
 							elementsToUpdate[x].node.textContent = DON.template(elementsToUpdate[x].originalState, collections[key], this.state);
 						break;
 
 						default:
-							// var thisAttribute = elementsToUpdate[x].node.getAttribute('data-don-original-'+key);
 							elementsToUpdate[x].node.setAttribute(key, DON.template(elementsToUpdate[x].originalState, collections[key], this.state));
 					}
 				}
@@ -116,7 +124,7 @@ Corleone.prototype = {
 		}.bind(this);
 
 		var comparison = DON.compare(this.oldState, this.state);
-		if(!comparison.state){
+		if(!comparison.same){
 			updateDom(comparison.changes);
 			this.oldState = Object.assign({}, this.state);
 		}
@@ -127,10 +135,10 @@ Corleone.prototype = {
 			for (var i = 0; i < this.elements.length; i++) {
 				for(eventName in this.events){
 					if(eventName !== 'ready'){
-						this.cache[eventName] = function(e){
+						var thisCallback = function(e){
 							this.proto.events[eventName].bind(this.proto.state)(e, this.element);
 						};
-						this.elements[i].addEventListener(eventName, this.cache[eventName].bind({proto : this, element : this.elements[i]}), false);
+						this.elements[i].addEventListener(eventName, thisCallback.bind({proto : this, element : this.elements[i]}), false);
 					}
 				}
 			};
@@ -141,18 +149,6 @@ Corleone.prototype = {
 			events : [],
 			injects : []
 		};
-		if(this.methods){
-			// Handle event types
-			for (var x = foundDon.events.length - 1; x >= 0; x--) {
-				var attribute = foundDon.events[x].getAttribute('data-don-event').replace(/ /g,'');
-				var events = attribute.split(',');
-
-				for (var i = events.length - 1; i >= 0; i--) {
-					var donEvent = events[i].split(':');
-					foundDon.events[x].addEventListener(donEvent[0], this.methods[donEvent[1]], false);
-				};
-			};
-		}
 
 		var getDonDOM = function(element, selector, output){
 			var query = element.querySelectorAll(selector);
@@ -162,12 +158,28 @@ Corleone.prototype = {
 
 		// Collect don elements
 		for (var i = this.elements.length - 1; i >= 0; i--) {
-			getDonDOM(this.elements[i], '*[data-don-event]', 'events');
-			getDonDOM(this.elements[i], '*[data-don-inject]', 'injects');
+			getDonDOM(this.elements[i], '*[don-on]', 'events');
+			getDonDOM(this.elements[i], '*[don-bind]', 'injects');
 		};
+		if(this.methods){
+			// Handle event types
+			for (var x = foundDon.events.length - 1; x >= 0; x--) {
+				var attribute = foundDon.events[x].getAttribute('don-on').replace(/ /g,'');
+				var events = attribute.split(',');
+
+				for (var i = events.length - 1; i >= 0; i--) {
+					var donEvent = events[i].split(':');
+					var thisCallback = function(e){
+						this.proto.methods[this.methodName].bind(this.proto.state)(e, this.element);
+					};
+					foundDon.events[x].addEventListener(donEvent[0], thisCallback.bind({proto : this, element : foundDon.events[x], methodName : donEvent[1]}), false);
+				};
+				foundDon.events[x].removeAttribute('don-on');
+			};
+		}
 		// Handle injection types
 		for (var x = foundDon.injects.length - 1; x >= 0; x--) {
-			var attribute = foundDon.injects[x].getAttribute('data-don-inject').replace(/ /g,'');
+			var attribute = foundDon.injects[x].getAttribute('don-bind').replace(/ /g,'');
 			var injects = attribute.split(',');
 			var collections = {};
 
@@ -178,7 +190,7 @@ Corleone.prototype = {
 				collections[donInject[0]].push(donInject[1]);
 
 				if(!(donInject[1] in this.bindings)) this.bindings[donInject[1]] = [];
-				var binding = {subject : donInject[0], node : foundDon.injects[x]};
+				var binding = {subject : donInject[0], node : foundDon.injects[x], attribute : attribute};
 				switch(donInject[0]){
 					case 'text':
 						binding.originalState = foundDon.injects[x].textContent;
@@ -202,6 +214,8 @@ Corleone.prototype = {
 						foundDon.injects[x].setAttribute(key, DON.template(thisAttribute, collections[key], this.state));
 				}
 			}
+
+			foundDon.injects[x].removeAttribute('don-bind');
 		};
 	}
 }
@@ -210,6 +224,7 @@ var Don = function(selector, data){
 	var performance = new Performance('Don Exec on '+selector, 3);
 
 	var corleone = new Corleone(selector, data);
+	corleone.before();
 	corleone.addEvents();
 	corleone.buildDonDOM();
 	corleone.ready();
