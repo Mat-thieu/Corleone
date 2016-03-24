@@ -58,11 +58,11 @@ var DON = {
 
 // --- Corleone ---
 function Corleone(selector, data){
-	this.events = false || data.events;
-	this.state = false || data.state;
-	this.methods = false || data.methods;
-	this.elements = document.querySelectorAll(selector);
+	this.events = data.events || false;
+	this.state = data.state || false;
 	this.oldState;
+	this.methods = data.methods || false;
+	this.elements = document.querySelectorAll(selector);
 	this.bindings = {};
 }
 Corleone.prototype = {
@@ -136,9 +136,9 @@ Corleone.prototype = {
 				for(eventName in this.events){
 					if(eventName !== 'ready'){
 						var thisCallback = function(e){
-							this.proto.events[eventName].bind(this.proto.state)(e, this.element);
+							this.proto.events[this.eventName].bind(this.proto.state)(e, this.element);
 						};
-						this.elements[i].addEventListener(eventName, thisCallback.bind({proto : this, element : this.elements[i]}), false);
+						this.elements[i].addEventListener(eventName, thisCallback.bind({proto : this, element : this.elements[i], eventName : eventName}), false);
 					}
 				}
 			};
@@ -177,46 +177,48 @@ Corleone.prototype = {
 				foundDon.events[x].removeAttribute('don-on');
 			};
 		}
-		// Handle injection types
-		for (var x = foundDon.injects.length - 1; x >= 0; x--) {
-			var attribute = foundDon.injects[x].getAttribute('don-bind').replace(/ /g,'');
-			var injects = attribute.split(',');
-			var collections = {};
+		if(this.state){
+			// Handle injection types
+			for (var x = foundDon.injects.length - 1; x >= 0; x--) {
+				var attribute = foundDon.injects[x].getAttribute('don-bind').replace(/ /g,'');
+				var injects = attribute.split(',');
+				var collections = {};
 
-			for (var i = injects.length - 1; i >= 0; i--) {
-				var donInject = injects[i].split(':');
+				for (var i = injects.length - 1; i >= 0; i--) {
+					var donInject = injects[i].split(':');
 
-				if(!(donInject[0] in collections)) collections[donInject[0]] = [];
-				collections[donInject[0]].push(donInject[1]);
+					if(!(donInject[0] in collections)) collections[donInject[0]] = [];
+					collections[donInject[0]].push(donInject[1]);
 
-				if(!(donInject[1] in this.bindings)) this.bindings[donInject[1]] = [];
-				var binding = {subject : donInject[0], node : foundDon.injects[x], attribute : attribute};
-				switch(donInject[0]){
-					case 'text':
-						binding.originalState = foundDon.injects[x].textContent;
-					break;
+					if(!(donInject[1] in this.bindings)) this.bindings[donInject[1]] = [];
+					var binding = {subject : donInject[0], node : foundDon.injects[x], attribute : attribute};
+					switch(donInject[0]){
+						case 'text':
+							binding.originalState = foundDon.injects[x].textContent;
+						break;
 
-					default:
-						binding.originalState = foundDon.injects[x].getAttribute(donInject[0]);
+						default:
+							binding.originalState = foundDon.injects[x].getAttribute(donInject[0]);
+					}
+					this.bindings[donInject[1]].push(binding);
 				}
-				this.bindings[donInject[1]].push(binding);
-			}
 
-			for(key in collections){
-				switch(key){
-					case 'text':
-						var thisText = foundDon.injects[x].textContent;
-						foundDon.injects[x].textContent = DON.template(thisText, collections[key], this.state);
-					break;
+				for(key in collections){
+					switch(key){
+						case 'text':
+							var thisText = foundDon.injects[x].textContent;
+							foundDon.injects[x].textContent = DON.template(thisText, collections[key], this.state);
+						break;
 
-					default:
-						var thisAttribute = foundDon.injects[x].getAttribute(key);
-						foundDon.injects[x].setAttribute(key, DON.template(thisAttribute, collections[key], this.state));
+						default:
+							var thisAttribute = foundDon.injects[x].getAttribute(key);
+							foundDon.injects[x].setAttribute(key, DON.template(thisAttribute, collections[key], this.state));
+					}
 				}
-			}
 
-			foundDon.injects[x].removeAttribute('don-bind');
-		};
+				foundDon.injects[x].removeAttribute('don-bind');
+			};
+		}
 	}
 }
 
