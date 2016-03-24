@@ -41,7 +41,6 @@ Don([element], [options]);
 // Examples
 Don('.element',{options});
 Don('#element',{options});
-Don('div',{options});
 
 ```
 
