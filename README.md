@@ -20,7 +20,7 @@ All modern/mobile browsers + IE 10 and up (Added a polyfill for Object.assign())
 ---
 
 ## Todo
-- Find a different solution for data-bind (an efficient solution also)
+- Find a different solution for don-bind (an efficient solution also)
 - Figure out in-DOM looping
 - Make a Todo list
 - Make it so you can pass an array into the bind function like this don-bind="text:[increment, info]" while still allowing don-bind="text:increment" for singles
@@ -101,7 +101,7 @@ Don('#example', {
 ```
 
 ### DOM
-Lets assume this is out Don instance for this part of the docs
+Lets assume this is our Don instance for this part of the docs
 ```javascript
 var testId = Don('#test', {
 	state : {
@@ -129,7 +129,7 @@ Make state variable available to the defined attribute or text/html
 So first define where you want to bind the state variable (for example, as text or as the attribute data-increment) and then define which state variable you want to bind
 
 ##### "don-on" event/method binding
-Define which event has to happen before a method has to get executes
+Define which event has to happen before a method has to get executed
 ```html
 <div id="test">
 	<div don-on="mouseup:increment">
